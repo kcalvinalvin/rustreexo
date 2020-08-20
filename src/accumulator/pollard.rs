@@ -1,5 +1,8 @@
 // Rustreexo
 
+use std::collections::HashMap;
+
+// TODO maybe there is a better rusty way of doing this...
 pub const EMPTY: [u8; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
@@ -14,21 +17,28 @@ pub const EMPTY: [u8; 32] = [
 /// Its structure resembles of that of a binary tree, except that
 /// the pointers point to aunts - nieces, not parents - children
 pub struct Pollard {
-    /// roots are the top-most nodes of the tree
-    /// There may be multiple roots as
-    pub roots: Vec<PolNode>,
-}
+    /// Roots are the top-most nodes of the tree
+    /// There may be multiple roots as Utreexo is organized as a
+    /// collection of perfect trees.
+    pub Roots: Vec<PolNode>,
 
-///
-pub struct Memetable {}
+    /// CachedLeaves are the cached leaves to the LeafData.
+    /// This is done for efficiency purposes as the utxos that
+    /// are going to be spent soon doesn't have to be redownloaded
+    /// saving networking usage
+    pub CachedLeaves: HashMap<Leaf, LeafData>,
+}
 
 impl Pollard {
     /// Modify changes the Utreexo tree state given the utxos and stxos
     /// stxos are denoted by their value
     pub fn Modify(&self, utxos: Vec<Leaf>, stxos: Vec<u64>) -> Option<&str> {
-        return;
+        self.Remove(stxos);
+
+        self.Add(utxos);
     }
 
+    //
     fn Add(&self) -> Result {
         for add in adds {
             if add.Remember {
