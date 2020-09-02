@@ -1,0 +1,640 @@
+   Compiling rustreexo v0.1.0 (/home/calvin/rust/rustreexo)
+error[E0432]: unresolved import `types`
+ --> src/accumulator/pollard.rs:5:5
+  |
+5 | use types::{Leaf, LeafData};
+  |     ^^^^^ help: a similar path exists: `super::types`
+
+error[E0432]: unresolved import `types`
+ --> src/accumulator/pollard.rs:5:5
+  |
+5 | use types::{Leaf, LeafData};
+  |     ^^^^^ help: a similar path exists: `super::types`
+
+error[E0425]: cannot find value `adds` in this scope
+  --> src/accumulator/pollard.rs:45:20
+   |
+45 |         for add in adds {
+   |                    ^^^^ not found in this scope
+
+error[E0425]: cannot find value `err` in this scope
+  --> src/accumulator/pollard.rs:49:13
+   |
+49 |             err = AddSingle().unwrap();
+   |             ^^^ help: a tuple variant with a similar name exists: `Err`
+
+error[E0425]: cannot find function, tuple struct or tuple variant `AddSingle` in this scope
+  --> src/accumulator/pollard.rs:49:19
+   |
+49 |             err = AddSingle().unwrap();
+   |                   ^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `err` in this scope
+  --> src/accumulator/pollard.rs:51:16
+   |
+51 |         return err;
+   |                ^^^ help: a tuple variant with a similar name exists: `Err`
+
+error[E0425]: cannot find function `parent_hash` in this scope
+  --> src/accumulator/pollard.rs:71:16
+   |
+71 |         return parent_hash(self.niece[0].data, n.niece[1].data);
+   |                ^^^^^^^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::types::parent_hash;
+   |
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:71:48
+   |
+71 |         return parent_hash(self.niece[0].data, n.niece[1].data);
+   |                                                ^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:76:16
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                ^ not found in this scope
+
+error[E0425]: cannot find value `nil` in this scope
+  --> src/accumulator/pollard.rs:76:30
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                              ^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:76:37
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                                     ^ not found in this scope
+
+error[E0425]: cannot find value `nil` in this scope
+  --> src/accumulator/pollard.rs:76:51
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                                                   ^^^ not found in this scope
+
+error[E0412]: cannot find type `arrow` in this scope
+ --> src/accumulator/transform.rs:4:68
+  |
+4 | fn transform(dels: Vec<u64>, num_leaves: u64, rows: u8) -> Vec<Vec<arrow>> {
+  |                                                                    ^^^^^ not found in this scope
+
+error[E0425]: cannot find value `adds` in this scope
+  --> src/accumulator/pollard.rs:45:20
+   |
+45 |         for add in adds {
+   |                    ^^^^ not found in this scope
+
+error[E0425]: cannot find function `length` in this scope
+ --> src/accumulator/transform.rs:5:40
+  |
+5 |     let num_next_leaves = num_leaves - length(dels);
+  |                                        ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `err` in this scope
+  --> src/accumulator/pollard.rs:49:13
+   |
+49 |             err = AddSingle().unwrap();
+   |             ^^^ help: a tuple variant with a similar name exists: `Err`
+
+error[E0425]: cannot find function `delRoot` in this scope
+ --> src/accumulator/transform.rs:8:9
+  |
+8 |         delRoot();
+  |         ^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function, tuple struct or tuple variant `AddSingle` in this scope
+  --> src/accumulator/pollard.rs:49:19
+   |
+49 |             err = AddSingle().unwrap();
+   |                   ^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `extract_twins` in this scope
+ --> src/accumulator/transform.rs:9:20
+  |
+9 |         let pair = extract_twins(dels, forestRows);
+  |                    ^^^^^^^^^^^^^ not found in this scope
+  |
+help: possible candidate is found in another module, you can import it into scope
+  |
+3 | use crate::accumulator::util::extract_twins;
+  |
+
+error[E0425]: cannot find value `err` in this scope
+  --> src/accumulator/pollard.rs:51:16
+   |
+51 |         return err;
+   |                ^^^ help: a tuple variant with a similar name exists: `Err`
+
+error[E0425]: cannot find value `forestRows` in this scope
+ --> src/accumulator/transform.rs:9:40
+  |
+9 |         let pair = extract_twins(dels, forestRows);
+  |                                        ^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `swapNextDels` in this scope
+  --> src/accumulator/transform.rs:10:9
+   |
+10 |         swapNextDels();
+   |         ^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `parent_hash` in this scope
+  --> src/accumulator/pollard.rs:71:16
+   |
+71 |         return parent_hash(self.niece[0].data, n.niece[1].data);
+   |                ^^^^^^^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::types::parent_hash;
+   |
+
+error[E0425]: cannot find value `swaps` in this scope
+  --> src/accumulator/transform.rs:12:12
+   |
+12 |     return swaps;
+   |            ^^^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:71:48
+   |
+71 |         return parent_hash(self.niece[0].data, n.niece[1].data);
+   |                                                ^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:76:16
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                ^ not found in this scope
+
+error[E0425]: cannot find value `EMPTY` in this scope
+  --> src/accumulator/types.rs:41:16
+   |
+41 |     if left == EMPTY || right == EMPTY {
+   |                ^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::pollard::EMPTY;
+   |
+
+error[E0425]: cannot find value `nil` in this scope
+  --> src/accumulator/pollard.rs:76:30
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                              ^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/pollard.rs:76:37
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                                     ^ not found in this scope
+
+error[E0425]: cannot find value `EMPTY` in this scope
+  --> src/accumulator/types.rs:41:34
+   |
+41 |     if left == EMPTY || right == EMPTY {
+   |                                  ^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::pollard::EMPTY;
+   |
+
+error[E0425]: cannot find value `nil` in this scope
+  --> src/accumulator/pollard.rs:76:51
+   |
+76 |         return n.niece[0] != nil && n.niece[1] != nil;
+   |                                                   ^^^ not found in this scope
+
+error[E0412]: cannot find type `arrow` in this scope
+ --> src/accumulator/transform.rs:4:68
+  |
+4 | fn transform(dels: Vec<u64>, num_leaves: u64, rows: u8) -> Vec<Vec<arrow>> {
+  |                                                                    ^^^^^ not found in this scope
+
+error[E0423]: expected function, found macro `panic`
+  --> src/accumulator/types.rs:42:9
+   |
+42 |         panic("emtpy niece")
+   |         ^^^^^
+   |
+help: use `!` to invoke the macro
+   |
+42 |         panic!("emtpy niece")
+   |         ^^^^^^
+help: possible better candidate is found in another module, you can import it into scope
+   |
+3  | use core::panicking::panic;
+   |
+
+error[E0425]: cannot find function `length` in this scope
+ --> src/accumulator/transform.rs:5:40
+  |
+5 |     let num_next_leaves = num_leaves - length(dels);
+  |                                        ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `first` in this scope
+  --> src/accumulator/types.rs:47:20
+   |
+47 |     hasher.update([first, second].concat());
+   |                    ^^^^^ not found in this scope
+
+error[E0425]: cannot find value `second` in this scope
+  --> src/accumulator/types.rs:47:27
+   |
+47 |     hasher.update([first, second].concat());
+   |                           ^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `delRoot` in this scope
+ --> src/accumulator/transform.rs:8:9
+  |
+8 |         delRoot();
+  |         ^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `extract_twins` in this scope
+ --> src/accumulator/transform.rs:9:20
+  |
+9 |         let pair = extract_twins(dels, forestRows);
+  |                    ^^^^^^^^^^^^^ not found in this scope
+  |
+help: possible candidate is found in another module, you can import it into scope
+  |
+3 | use crate::accumulator::util::extract_twins;
+  |
+
+error[E0425]: cannot find value `forestRows` in this scope
+ --> src/accumulator/transform.rs:9:40
+  |
+9 |         let pair = extract_twins(dels, forestRows);
+  |                                        ^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find function `parent_hash` in this scope
+  --> src/accumulator/util.rs:19:26
+   |
+19 |             parents.push(parent_hash(n[0], n[1]));
+   |                          ^^^^^^^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::types::parent_hash;
+   |
+
+error[E0425]: cannot find function `swapNextDels` in this scope
+  --> src/accumulator/transform.rs:10:9
+   |
+10 |         swapNextDels();
+   |         ^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `swaps` in this scope
+  --> src/accumulator/transform.rs:12:12
+   |
+12 |     return swaps;
+   |            ^^^^^ not found in this scope
+
+error[E0425]: cannot find value `EMPTY` in this scope
+  --> src/accumulator/types.rs:41:16
+   |
+41 |     if left == EMPTY || right == EMPTY {
+   |                ^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::pollard::EMPTY;
+   |
+
+error[E0425]: cannot find function `treeRows` in this scope
+   --> src/accumulator/util.rs:45:5
+    |
+45  |       treeRows(check(subtree_leaves, pos))
+    |       ^^^^^^^^ help: a function with a similar name exists: `tree_rows`
+...
+127 | / fn tree_rows(n: u64) -> u8 {
+128 | |     // treeRows works by:
+129 | |     // 1. Find the next power of 2 from the given n leaves.
+130 | |     // 2. Calculate the log2 of the result from step 1.
+...   |
+157 | |     t.trailing_zeros() & !64;
+158 | | }
+    | |_- similarly named function `tree_rows` defined here
+
+error[E0425]: cannot find value `EMPTY` in this scope
+  --> src/accumulator/types.rs:41:34
+   |
+41 |     if left == EMPTY || right == EMPTY {
+   |                                  ^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::pollard::EMPTY;
+   |
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:51:5
+   |
+51 |     marker = 1 << forestRows;
+   |     ^^^^^^ not a value
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:52:5
+   |
+52 |     n = marker | pos;
+   |     ^ not found in this scope
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:52:9
+   |
+52 |     n = marker | pos;
+   |         ^^^^^^ not a value
+
+error[E0423]: expected function, found macro `panic`
+  --> src/accumulator/types.rs:42:9
+   |
+42 |         panic("emtpy niece")
+   |         ^^^^^
+   |
+help: use `!` to invoke the macro
+   |
+42 |         panic!("emtpy niece")
+   |         ^^^^^^
+help: possible better candidate is found in another module, you can import it into scope
+   |
+3  | use core::panicking::panic;
+   |
+
+error[E0425]: cannot find value `first` in this scope
+  --> src/accumulator/types.rs:47:20
+   |
+47 |     hasher.update([first, second].concat());
+   |                    ^^^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:53:5
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |     ^ not found in this scope
+
+error[E0425]: cannot find value `second` in this scope
+  --> src/accumulator/types.rs:47:27
+   |
+47 |     hasher.update([first, second].concat());
+   |                           ^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:53:9
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |         ^ not found in this scope
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:53:14
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |              ^^^^^^ not a value
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:54:5
+   |
+54 |     n.leading_zeros()
+   |     ^ not found in this scope
+
+error[E0425]: cannot find function `parent_hash` in this scope
+  --> src/accumulator/util.rs:19:26
+   |
+19 |             parents.push(parent_hash(n[0], n[1]));
+   |                          ^^^^^^^^^^^ not found in this scope
+   |
+help: possible candidate is found in another module, you can import it into scope
+   |
+3  | use crate::accumulator::types::parent_hash;
+   |
+
+error[E0425]: cannot find value `tr` in this scope
+  --> src/accumulator/util.rs:58:5
+   |
+58 |     tr = tree_rows(nLeaves);
+   |     ^^ not found in this scope
+
+error[E0425]: cannot find value `nr` in this scope
+  --> src/accumulator/util.rs:60:5
+   |
+60 |     nr = detect_row(pos, tr);
+   |     ^^ not found in this scope
+
+error[E0425]: cannot find value `tr` in this scope
+  --> src/accumulator/util.rs:60:26
+   |
+60 |     nr = detect_row(pos, tr);
+   |                          ^^ not found in this scope
+
+error[E0425]: cannot find function `treeRows` in this scope
+   --> src/accumulator/util.rs:45:5
+    |
+45  |       treeRows(check(subtree_leaves, pos))
+    |       ^^^^^^^^ help: a function with a similar name exists: `tree_rows`
+...
+127 | / fn tree_rows(n: u64) -> u8 {
+128 | |     // treeRows works by:
+129 | |     // 1. Find the next power of 2 from the given n leaves.
+130 | |     // 2. Calculate the log2 of the result from step 1.
+...   |
+157 | |     t.trailing_zeros() & !64;
+158 | | }
+    | |_- similarly named function `tree_rows` defined here
+
+error[E0425]: cannot find value `position` in this scope
+  --> src/accumulator/util.rs:66:13
+   |
+66 |     return (position << 1) & mask;
+   |             ^^^^^^^^ not found in this scope
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:51:5
+   |
+51 |     marker = 1 << forestRows;
+   |     ^^^^^^ not a value
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:52:5
+   |
+52 |     n = marker | pos;
+   |     ^ not found in this scope
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:52:9
+   |
+52 |     n = marker | pos;
+   |         ^^^^^^ not a value
+
+error[E0573]: expected type, found variant `Err`
+  --> src/accumulator/util.rs:72:68
+   |
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, Err> {
+   |                                                                    ^^^ not a type
+   |
+help: try using the variant's enum
+   |
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, core::prelude::v1> {
+   |                                                                    ^^^^^^^^^^^^^^^^^
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, core::result::Result> {
+   |                                                                    ^^^^^^^^^^^^^^^^^^^^
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, std::result::Result> {
+   |                                                                    ^^^^^^^^^^^^^^^^^^^
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:53:5
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |     ^ not found in this scope
+
+error[E0425]: cannot find value `position` in this scope
+  --> src/accumulator/util.rs:85:6
+   |
+85 |     (position >> 1) | (1 << forestRows)
+   |      ^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:53:9
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |         ^ not found in this scope
+
+error[E0423]: expected value, found built-in attribute `marker`
+  --> src/accumulator/util.rs:53:14
+   |
+53 |     n = n & !marker; // unset the 1 bit
+   |              ^^^^^^ not a value
+
+error[E0573]: expected type, found variant `Err`
+  --> src/accumulator/util.rs:91:69
+   |
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, Err> {
+   |                                                                     ^^^ not a type
+   |
+help: try using the variant's enum
+   |
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, core::prelude::v1> {
+   |                                                                     ^^^^^^^^^^^^^^^^^
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, core::result::Result> {
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, std::result::Result> {
+   |                                                                     ^^^^^^^^^^^^^^^^^^^
+
+error[E0425]: cannot find value `n` in this scope
+  --> src/accumulator/util.rs:54:5
+   |
+54 |     n.leading_zeros()
+   |     ^ not found in this scope
+
+error[E0425]: cannot find value `tr` in this scope
+  --> src/accumulator/util.rs:58:5
+   |
+58 |     tr = tree_rows(nLeaves);
+   |     ^^ not found in this scope
+
+error[E0425]: cannot find value `nr` in this scope
+  --> src/accumulator/util.rs:60:5
+   |
+60 |     nr = detect_row(pos, tr);
+   |     ^^ not found in this scope
+
+error[E0425]: cannot find value `tr` in this scope
+  --> src/accumulator/util.rs:60:26
+   |
+60 |     nr = detect_row(pos, tr);
+   |                          ^^ not found in this scope
+
+error[E0425]: cannot find value `position` in this scope
+  --> src/accumulator/util.rs:66:13
+   |
+66 |     return (position << 1) & mask;
+   |             ^^^^^^^^ not found in this scope
+
+error[E0573]: expected type, found variant `Err`
+  --> src/accumulator/util.rs:72:68
+   |
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, Err> {
+   |                                                                    ^^^ not a type
+   |
+help: try using the variant's enum
+   |
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, core::prelude::v1> {
+   |                                                                    ^^^^^^^^^^^^^^^^^
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, core::result::Result> {
+   |                                                                    ^^^^^^^^^^^^^^^^^^^^
+72 | fn n_grandchild(pos: u64, drop: u8, forestRows: u8) -> Result<u64, std::result::Result> {
+   |                                                                    ^^^^^^^^^^^^^^^^^^^
+
+error[E0425]: cannot find value `position` in this scope
+  --> src/accumulator/util.rs:85:6
+   |
+85 |     (position >> 1) | (1 << forestRows)
+   |      ^^^^^^^^ not found in this scope
+
+error[E0573]: expected type, found variant `Err`
+  --> src/accumulator/util.rs:91:69
+   |
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, Err> {
+   |                                                                     ^^^ not a type
+   |
+help: try using the variant's enum
+   |
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, core::prelude::v1> {
+   |                                                                     ^^^^^^^^^^^^^^^^^
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, core::result::Result> {
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+91 | fn n_grandparent(pos: u64, rise: u8, forestRows: u8) -> Result<u64, std::result::Result> {
+   |                                                                     ^^^^^^^^^^^^^^^^^^^
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:44:22
+   |
+44 |     fn Add(&self) -> Result {
+   |                      ^^^^^^ expected 2 type arguments
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:55:60
+   |
+55 |     fn AddSingle(&self, utxo: [u8; 32], remember: bool) -> Result {}
+   |                                                            ^^^^^^ expected 2 type arguments
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:44:22
+   |
+44 |     fn Add(&self) -> Result {
+   |                      ^^^^^^ expected 2 type arguments
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:57:20
+   |
+57 |     fn Remove() -> Result {}
+   |                    ^^^^^^ expected 2 type arguments
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:55:60
+   |
+55 |     fn AddSingle(&self, utxo: [u8; 32], remember: bool) -> Result {}
+   |                                                            ^^^^^^ expected 2 type arguments
+
+error[E0107]: wrong number of type arguments: expected 2, found 0
+  --> src/accumulator/pollard.rs:57:20
+   |
+57 |     fn Remove() -> Result {}
+   |                    ^^^^^^ expected 2 type arguments
+
+error: aborting due to 42 previous errors
+
+Some errors have detailed explanations: E0107, E0412, E0423, E0425, E0432, E0573.
+For more information about an error, try `rustc --explain E0107`.
+error: aborting due to 42 previous errors
+
+Some errors have detailed explanations: E0107, E0412, E0423, E0425, E0432, E0573.
+For more information about an error, try `rustc --explain E0107`.
+error: could not compile `rustreexo`.
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `rustreexo`.
+
+To learn more, run the command again with --verbose.

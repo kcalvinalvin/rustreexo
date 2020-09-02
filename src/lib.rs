@@ -1,1 +1,1 @@
-pub mod accumulator
+pub mod accumulator;
