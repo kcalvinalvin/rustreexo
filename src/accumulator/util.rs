@@ -30,36 +30,95 @@ pub fn extract_twins(nodes: Vec<u64>, forest_rows: u8) -> (Vec<u64>, Vec<u64>) {
 // Go left to right through the bits of numLeaves,
 // and subtract that from position until it goes negative.
 // (Does not work for nodes that are not at the bottom)
-fn detect_sub_tree_rows(pos: u64, num_leaves: u64) -> u8 {
-    let subtree_leaves = previous_pow2(num_leaves);
+fn detect_sub_tree_rows(pos: u64, num_leaves: u64, forest_rows: u8) -> u8 {
+    let mut h = forest_rows;
+    let mut marker = pos;
 
-    fn check(leaves: u64, pos: u64) -> u64 {
-        if leaves & pos != pos {
-            check(leaves / 2, pos)
-        } else {
-            leaves
-        }
-    };
+    while marker >= (1 << h) & num_leaves {
+        marker -= (1 << h) & num_leaves;
+        h -= 1;
+    }
 
-    tree_rows(check(subtree_leaves, pos))
+    return h;
 }
 
 // detectRow finds the current row of a node, given the position
 // and the total forest rows.
 fn detect_row(pos: u64, forest_rows: u8) -> u8 {
-    let marker = 1 << forest_rows;
-    let mut n = marker | pos;
-    n = n & !marker; // unset the 1 bit
-    n.leading_zeros() as u8
+    let mut marker: u64 = 1 << forest_rows;
+    let mut h: u8 = 0;
+
+    while pos & marker != 0 {
+        marker >>= 1;
+        h += 1;
+    }
+
+    return h;
 }
 
-/*
+// getRowOffset returns the first position of that row
+// ex:
+// 14
+// |---------------\
+// 12              13
+// |-------\       |-------\
+// 08      09      10      11
+// |---\   |---\   |---\   |---\
+// 00  01  02  03  04  05  06  07
+//
+// 8 = getRowOffset(1, 3)
+// 12 = getRowOffset(2, 3)
+fn row_offset(row: u8, forest_rows: u8) -> u64 {
+    // 2 << forestRows is 2 more than the max poisition
+    // to get the correct offset for a given row,
+    // subtract (2 << `row complement of forestRows`) from (2 << forestRows)
+    (2 << forest_rows) - (2 << (forest_rows - row))
+}
+
 fn detect_offset(pos: u64, num_leaves: u64) -> (u8, u8, u64) {
-    let tr = tree_rows(num_leaves);
-
+    let mut tr = tree_rows(num_leaves);
     let nr = detect_row(pos, tr);
+
+    let mut bigger_trees: u8 = 0;
+    let mut marker = pos;
+
+    // add trees until you would exceed position of node
+
+    // This is a bit of an ugly predicate.  The goal is to detect if we've
+    // gone past the node we're looking for by inspecting progressively shorter
+    // trees; once we have, the loop is over.
+
+    // The predicate breaks down into 3 main terms:
+    // A: pos << nh
+    // B: mask
+    // C: 1<<th & num_leaves (tree_size)
+    // The predicate is then if (A&B >= C)
+    // A is position up-shifted by the row of the node we're targeting.
+    // B is the "mask" we use in other functions; a bunch of 0s at the MSB side
+    // and then a bunch of 1s on the LSB side, such that we can use bitwise AND
+    // to discard high bits.  Together, A&B is shifting position up by nr bits,
+    // and then discarding (zeroing out) the high bits.  This is the same as in
+    // n_grandchild.  C checks for whether a tree exists at the current tree
+    // rows.  If there is no tree at tr, C is 0.  If there is a tree, it will
+    // return a power of 2: the base size of that tree.
+    // The C term actually is used 3 times here, which is ugly; it's redefined
+    // right on the next line.
+    // In total, what this loop does is to take a node position, and
+    // see if it's in the next largest tree.  If not, then subtract everything
+    // covered by that tree from the position, and proceed to the next tree,
+    // skipping trees that don't exist.
+
+    while (marker << nr) & ((2 << tr) - 1) >= (1 << tr) & num_leaves {
+        let tree_size = (1 << tr) & num_leaves;
+        if tree_size != 0 {
+            marker -= tree_size;
+            bigger_trees += 1;
+        }
+        tr -= 1;
+    }
+
+    return (bigger_trees, tr - nr, !marker);
 }
-*/
 
 // child gives you the left child (LSB will be 0)
 fn child(pos: u64, forest_rows: u8) -> u64 {
@@ -142,17 +201,6 @@ fn tree_rows(n: u64) -> u8 {
     // For Utreexo trees that don't have leaves that are power of 2,
     // the extra space is just unallocated/filled with zeros.
 
-    // Find the next power of 2
-    /*
-    let mut t = n - 1;
-    t |= t >> 1;
-    t |= t >> 2;
-    t |= t >> 4;
-    t |= t >> 8;
-    t |= t >> 16;
-    t |= t >> 32;
-    t = t + 1;
-    */
     let t = next_pow2(n);
 
     // log of 2 is the tree depth/height
@@ -185,9 +233,9 @@ fn get_roots_reverse(num_leaves: u64, forest_rows: u8) {
     //for
 }
 
-fn sub_tree_positions() {}
+fn subtree_positions() {}
 
-fn sub_tree_leafrange() {}
+fn subtree_leafrange() {}
 
 fn to_leaves() {}
 
@@ -242,15 +290,40 @@ mod tests {
         println!("{:?}", x.0);
         println!("{:?}", x.1);
 
-        for leaf_count in 4..5000 {
+        for leaf_count in 4..1000 {
             for pos in 0..leaf_count {
                 let n_vec = vec![pos, pos | 1, pos + 2, pos + 10];
                 let x = super::extract_twins(n_vec, super::tree_rows(leaf_count));
-                println!("sesdfondsofj");
-                println!("{:?}", x.0);
-                println!("{:?}", x.1);
+                //println!("sesdfondsofj");
+                //println!("{:?}", x.0);
+                //println!("{:?}", x.1);
                 assert_eq!(x.1, vec![pos, pos | 1]);
             }
         }
+    }
+
+    #[test]
+    fn test_detect_row() {
+        for forest_rows in 1..63 {
+            // Test top
+            let top_pos = (2 << forest_rows) - 2;
+            let row_result = super::detect_row(top_pos, forest_rows);
+
+            assert_eq!(row_result, forest_rows);
+
+            // Test others
+            for row in 0..forest_rows {
+                let pos = super::row_offset(row, forest_rows);
+                let row_result = super::detect_row(pos, forest_rows);
+
+                assert_eq!(row, row_result);
+            }
+        }
+    }
+
+    #[test]
+    fn test_detect_subtree_rows() {
+        let h = super::detect_sub_tree_rows(0, 8, 3);
+        assert_eq!(h, 3);
     }
 }

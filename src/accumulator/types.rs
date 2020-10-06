@@ -12,7 +12,7 @@ type HASH = [u8; 32];
 /// Leaf represents a utxo in the utreexo tree. These are the bottommost
 /// nodes in the tree.
 pub struct Leaf {
-    ///  Hash is the
+    ///  The hash representation of the Leaf
     hash: HASH,
 
     /// Remember is whether or not the UTXO this Leaf represents should
@@ -34,17 +34,13 @@ pub struct LeafData {
 
 /// Arrow is used to describe the movement of a leaf to a different
 /// position. This is used for batch deletions during removal
-struct Arrow {
+struct arrow {
     from: u64,
     to: u64,
 }
 
 // parent_hash return the merkle parent of the two passed in nodes
-pub fn parent_hash(left: [u8; 32], right: [u8; 32]) -> sha256::Hash {
-    if left == pollard::EMPTY || right == pollard::EMPTY {
-        panic!("emtpy niece")
-    }
-
+pub fn parent_hash(left: sha256::Hash, right: sha256::Hash) -> sha256::Hash {
     let hash = sha256::Hash::from_slice([left, right].concat().as_mut_slice()).unwrap();
     match hash {
         Hash => return hash,

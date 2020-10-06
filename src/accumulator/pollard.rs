@@ -2,14 +2,9 @@
 
 use std::collections::HashMap;
 
-use bitcoin::hashes::sha256;
+use bitcoin::hashes::sha256::{self, Hash};
 
 use super::types;
-
-// TODO maybe there is a better rusty way of doing this...
-pub const EMPTY: [u8; 32] = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-];
 
 /// Pollard is the sparse representation of the utreexo forest
 /// It is a collection of multitude of trees with leaves that are
@@ -25,6 +20,12 @@ pub struct Pollard {
     /// There may be multiple roots as Utreexo is organized as a
     /// collection of perfect trees.
     pub roots: Vec<PolNode>,
+
+    /// Total number of leaves (nodes on the bottom row) in the Pollard
+    pub num_leaves: u64,
+
+    /// Maps PolNode Hashes to positions
+    pub positionMap: HashMap<sha256::Hash, u64>,
 
     /// CachedLeaves are the cached leaves to the LeafData.
     /// This is done for efficiency purposes as the utxos that
@@ -45,6 +46,13 @@ impl Pollard {
 
     //
     fn Add(&self, adds: Vec<types::Leaf>) -> Result {
+        // General algo goes:
+        // 1 make a new node & assign data (no nieces; at bottom)
+        // 2 if this node is on a row where there's already a root,
+        // then swap nieces with that root, hash the two datas, and build a new
+        // node 1 higher pointing to them.
+        // goto 2.
+
         for add in adds {
             if add.Remember {
                 // TODO Should cache the add data
@@ -53,32 +61,94 @@ impl Pollard {
             Err(err);
         }
     }
+    */
 
     // AddSingle adds a single given utxo to the tree
-    fn AddSingle(&self, utxo: [u8; 32], remember: bool) -> Result {}
+    fn AddSingle(&mut self, utxo: sha256::Hash, remember: bool) {
+        // Algo explanation with catchy terms: grab, swap, hash, new, pop
+        // we're iterating through the roots of the pollard.  Roots correspond with 1-bits
+        // in numLeaves.  As soon as we hit a 0 (no root), we're done.
 
-    fn Remove() -> Result {}
-    */
+        // grab: Grab the lowest root.
+        // pop: pop off the lowest root.
+        // swap: swap the nieces of the node we grabbed and our new node
+        // hash: calculate the hashes of the old root and new node
+        // new: create a new parent node, with the hash as data, and the old root / prev new node
+        // as nieces (not nieces though, children)
+
+        // basic idea: you're going to start at the LSB and move left;
+        // the first 0 you find you're going to turn into a 1.
+        // make the new leaf & populate it with the actual data you're trying to add
+        let mut n = Box::new(PolNode {
+            data: utxo,
+            nieces: [None; 2],
+        });
+
+        if remember {
+            // flag this leaf as memorable via it's left pointer
+            *n.nieces[0].unwrap() = *n; // points to itself (mind blown)
+        }
+
+        // if add is forgetable, forget all the new nodes made
+        let mut h: u8;
+
+        // loop until we find a zero; destroy roots until you make one
+        while (self.num_leaves >> h) & 1 == 1 {
+            // grab, pop, swap, hash, new
+            let mut left_root = self.roots.pop();
+
+            //if h == 0 && remember {
+            //        // make sure that siblings are always remembered in pairs.
+            //        left_root.unwrap().l_niece = Some(Box::new(left_root));
+            //}
+
+            let swapped = Box::new(PolNode {
+                data: utxo,
+                nieces: [None; 2],
+            });
+
+            let tmp = n.nieces;
+            n.nieces = left_root.unwrap().nieces;
+            left_root.unwrap().nieces = tmp;
+            //left_root.niece, n.niece = n.niece, leftRoot.niece; // swap
+
+            let nHash = types::parent_hash(left_root.unwrap().data, n.data); // hash
+
+            n = Box::new(PolNode {
+                data: nHash,
+                nieces: [Some(Box::new(left_root.unwrap())), Some(n)],
+            }); // new
+
+            //n.prune();
+            h += 1;
+        }
+
+        // the new roots are all the 1 bits above where we got to, and nothing below where
+        // we got to.  We've already deleted all the lower roots, so append the new
+        // one we just made onto the end.
+
+        self.roots.push(*n);
+        self.num_leaves += 1;
+    }
+
+    //fn Remove() -> Result {}
 }
 
 /// polNode represents a node in the utreexo pollard tree. It points
 /// to its nieces
 pub struct PolNode {
-    pub data: [u8; 32],
-    pub niece: [Box<PolNode>; 2],
+    pub data: sha256::Hash,
+    //pub data: sha256::Hash,
+
+    //pub l_niece: Option<Box<PolNode>>,
+    //pub r_niece: Option<Box<PolNode>>,
+    pub nieces: [Option<Box<PolNode>>; 2],
 }
 
 impl PolNode {
     /// aunt_op returns the hash of a nodes' nieces. Errors if called on nieces
     /// that are nil.
     fn aunt_op(&self) -> sha256::Hash {
-        types::parent_hash(self.niece[0].data, self.niece[1].data)
+        types::parent_hash(self.nieces[0].unwrap().data, self.nieces[1].unwrap().data)
     }
-
-    /*
-    // auntable returns if aunt_op is callable on this PolNode
-    fn auntable(&self) -> bool {
-        self.niece[0] != nil && self.niece[1] != EMPTY;
-    }
-    */
 }
