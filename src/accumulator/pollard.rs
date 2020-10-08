@@ -2,9 +2,10 @@
 
 use std::collections::HashMap;
 
-use bitcoin::hashes::sha256::{self, Hash};
+use bitcoin::hashes::sha256;
 
 use super::types;
+use super::util;
 
 /// Pollard is the sparse representation of the utreexo forest
 /// It is a collection of multitude of trees with leaves that are
@@ -35,17 +36,15 @@ pub struct Pollard {
 }
 
 impl Pollard {
-    /*
     /// Modify changes the Utreexo tree state given the utxos and stxos
     /// stxos are denoted by their value
-    pub fn Modify(&self, utxos: Vec<types::Leaf>, stxos: Vec<u64>) -> Result<(), u8> {
-        self.Remove(stxos);
-
-        let err = self.Add(utxos).unwrap();
+    pub fn modify(&mut self, utxos: Vec<types::Leaf>, stxos: Vec<u64>) {
+        Pollard::remove(self, stxos);
+        Pollard::add(self, utxos);
     }
 
-    //
-    fn Add(&self, adds: Vec<types::Leaf>) -> Result {
+
+    pub fn add(&mut self, adds: Vec<types::Leaf>) {
         // General algo goes:
         // 1 make a new node & assign data (no nieces; at bottom)
         // 2 if this node is on a row where there's already a root,
@@ -54,17 +53,15 @@ impl Pollard {
         // goto 2.
 
         for add in adds {
-            if add.Remember {
-                // TODO Should cache the add data
-            }
-            let err = AddSingle().unwrap();
-            Err(err);
+            //if add.remember {
+            //    // TODO Should cache the add data
+            //}
+            Pollard::add_single(self, add.hash, false);
         }
     }
-    */
 
     // AddSingle adds a single given utxo to the tree
-    fn add_single(mut self, utxo: sha256::Hash, remember: bool) {
+    fn add_single(&mut self, utxo: sha256::Hash, remember: bool) {
         // Algo explanation with catchy terms: grab, swap, hash, new, pop
         // we're iterating through the roots of the pollard.  Roots correspond with 1-bits
         // in numLeaves.  As soon as we hit a 0 (no root), we're done.
@@ -128,7 +125,16 @@ impl Pollard {
         self.num_leaves += 1;
     }
 
-    //fn Remove() -> Result {}
+    fn remove(&mut self, dels: Vec<u64>) {
+        // if there is nothing to delete, return
+        if dels.len() == 0 {
+            return
+        }
+
+        let pollard_rows = util::tree_rows(self.num_leaves);
+
+        let leaves_after_del = self.num_leaves - dels.len() as u64;
+    }
 }
 
 /// polNode represents a node in the utreexo pollard tree. It points

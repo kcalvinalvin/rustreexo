@@ -141,14 +141,14 @@ fn n_grandchild(pos: u64, drop: u8, forest_rows: u8) -> Result<u64, u8> {
 }
 
 // parent returns the parent position of the passed in child
-fn parent(pos: u64, forest_rows: u8) -> u64 {
+pub fn parent(pos: u64, forest_rows: u8) -> u64 {
     (pos >> 1) | (1 << forest_rows)
 }
 
 // n_grandparent returns the parent postion of the passed in child
 // the generations to go will be determined by rise
 // ex: rise = 3 will return a great-grandparent
-fn n_grandparent(pos: u64, rise: u8, forest_rows: u8) -> Result<u64, u8> {
+pub fn n_grandparent(pos: u64, rise: u8, forest_rows: u8) -> Result<u64, u8> {
     if rise == 0 {
         return Ok(pos);
     }
@@ -187,7 +187,7 @@ fn in_forest(pos: u64, num_leaves: u64, forest_rows: u8) -> bool {
 }
 */
 // tree_rows returns the number of rows given n leaves
-fn tree_rows(n: u64) -> u8 {
+pub fn tree_rows(n: u64) -> u8 {
     // tree_rows works by:
     // 1. Find the next power of 2 from the given n leaves.
     // 2. Calculate the log2 of the result from step 1.
@@ -218,10 +218,10 @@ fn num_roots(num_leaves: u64) -> u8 {
 
 // root_position returns the position of the root at a given row
 // TODO undefined behavior if the given row doesn't have a root
-fn root_position(num_leaves: u64, h: u8, forest_rows: u8) -> u64 {
+pub fn root_position(num_leaves: u64, row: u8, forest_rows: u8) -> u64 {
     let mask = (2 << forest_rows) - 1;
-    let before = num_leaves & (mask << (h + 1));
-    let shifted = (before >> h) | (mask << (forest_rows - (h - 1)));
+    let before = num_leaves & (mask << (row + 1));
+    let shifted = (before >> row) | (mask << (forest_rows - (row - 1)));
 
     shifted & mask
 }

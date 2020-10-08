@@ -13,11 +13,11 @@ type HASH = [u8; 32];
 /// nodes in the tree.
 pub struct Leaf {
     ///  The hash representation of the Leaf
-    hash: HASH,
+    pub hash: sha256::Hash,
 
     /// Remember is whether or not the UTXO this Leaf represents should
     /// be cached or not.
-    remember: bool,
+    pub remember: bool,
 }
 
 /// LeafData is all the data that goes into the hashing the leaf.
@@ -34,9 +34,10 @@ pub struct LeafData {
 
 /// Arrow is used to describe the movement of a leaf to a different
 /// position. This is used for batch deletions during removal
-struct Arrow {
-    from: u64,
-    to: u64,
+#[derive(Clone, Copy)]
+pub struct Arrow {
+    pub from: u64,
+    pub to: u64,
 }
 
 // parent_hash return the merkle parent of the two passed in nodes
