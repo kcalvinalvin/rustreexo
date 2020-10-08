@@ -3,7 +3,7 @@
 //use sha2::{Digest, Sha256};
 
 use bitcoin::blockdata::transaction;
-use bitcoin::hashes::{sha256, Hash};
+use bitcoin::hashes::{sha256, Hash, HashEngine};
 
 use super::pollard;
 
@@ -34,17 +34,17 @@ pub struct LeafData {
 
 /// Arrow is used to describe the movement of a leaf to a different
 /// position. This is used for batch deletions during removal
-struct arrow {
+struct Arrow {
     from: u64,
     to: u64,
 }
 
 // parent_hash return the merkle parent of the two passed in nodes
-pub fn parent_hash(left: sha256::Hash, right: sha256::Hash) -> sha256::Hash {
-    let hash = sha256::Hash::from_slice([left, right].concat().as_mut_slice()).unwrap();
-    match hash {
-        Hash => return hash,
-        // TODO actually handle this
-        _ => panic!("parent_hash err"),
-    };
+pub fn parent_hash(left: &sha256::Hash, right: &sha256::Hash) -> sha256::Hash {
+    let mut engine = bitcoin_hashes::sha256::Hash::engine();
+
+    engine.input(left);
+    engine.input(right);
+
+    return sha256::Hash::from_engine(engine);
 }

@@ -25,7 +25,7 @@ pub struct Pollard {
     pub num_leaves: u64,
 
     /// Maps PolNode Hashes to positions
-    pub positionMap: HashMap<sha256::Hash, u64>,
+    pub position_map: HashMap<sha256::Hash, u64>,
 
     /// CachedLeaves are the cached leaves to the LeafData.
     /// This is done for efficiency purposes as the utxos that
@@ -64,7 +64,7 @@ impl Pollard {
     */
 
     // AddSingle adds a single given utxo to the tree
-    fn AddSingle(&mut self, utxo: sha256::Hash, remember: bool) {
+    fn add_single(mut self, utxo: sha256::Hash, remember: bool) {
         // Algo explanation with catchy terms: grab, swap, hash, new, pop
         // we're iterating through the roots of the pollard.  Roots correspond with 1-bits
         // in numLeaves.  As soon as we hit a 0 (no root), we're done.
@@ -81,42 +81,39 @@ impl Pollard {
         // make the new leaf & populate it with the actual data you're trying to add
         let mut n = Box::new(PolNode {
             data: utxo,
-            nieces: [None; 2],
+            nieces: [None, None],
         });
 
-        if remember {
-            // flag this leaf as memorable via it's left pointer
-            *n.nieces[0].unwrap() = *n; // points to itself (mind blown)
-        }
+        // FIXME This is ugly. It's currently broken in the reference go code anyways
+        //if remember {
+        //    // flag this leaf as memorable via it's left pointer
+        //    n.nieces[0] = Some(n.clone()); // points to itself (mind blown)
+        //}
 
         // if add is forgetable, forget all the new nodes made
-        let mut h: u8;
+        let mut h: u8 = 0;
 
         // loop until we find a zero; destroy roots until you make one
         while (self.num_leaves >> h) & 1 == 1 {
             // grab, pop, swap, hash, new
-            let mut left_root = self.roots.pop();
+            let mut left_root = self.roots.pop().unwrap();
 
             //if h == 0 && remember {
             //        // make sure that siblings are always remembered in pairs.
-            //        left_root.unwrap().l_niece = Some(Box::new(left_root));
+            //        left_root.unwrap().nieces[0] = Some(Box::new(left_root.clone().unwrap()));
             //}
 
-            let swapped = Box::new(PolNode {
-                data: utxo,
-                nieces: [None; 2],
-            });
-
             let tmp = n.nieces;
-            n.nieces = left_root.unwrap().nieces;
-            left_root.unwrap().nieces = tmp;
+            n.nieces = left_root.clone().nieces;
+            left_root.nieces = tmp;//[Some(tmp[0].unwrap()), Some(tmp[1].unwrap())];
+            //left_root.unwrap_or.nieces = tmp;
             //left_root.niece, n.niece = n.niece, leftRoot.niece; // swap
 
-            let nHash = types::parent_hash(left_root.unwrap().data, n.data); // hash
+            let n_hash = types::parent_hash(&left_root.data, &n.data); // hash
 
             n = Box::new(PolNode {
-                data: nHash,
-                nieces: [Some(Box::new(left_root.unwrap())), Some(n)],
+                data: n_hash,
+                nieces: [Some(Box::new(left_root)), Some(n)],
             }); // new
 
             //n.prune();
@@ -136,12 +133,11 @@ impl Pollard {
 
 /// polNode represents a node in the utreexo pollard tree. It points
 /// to its nieces
+#[derive(Clone)]
 pub struct PolNode {
     pub data: sha256::Hash,
     //pub data: sha256::Hash,
 
-    //pub l_niece: Option<Box<PolNode>>,
-    //pub r_niece: Option<Box<PolNode>>,
     pub nieces: [Option<Box<PolNode>>; 2],
 }
 
@@ -149,6 +145,6 @@ impl PolNode {
     /// aunt_op returns the hash of a nodes' nieces. Errors if called on nieces
     /// that are nil.
     fn aunt_op(&self) -> sha256::Hash {
-        types::parent_hash(self.nieces[0].unwrap().data, self.nieces[1].unwrap().data)
+        types::parent_hash(&self.nieces[0].as_ref().unwrap().data, &self.nieces[1].as_ref().unwrap().data)
     }
 }
