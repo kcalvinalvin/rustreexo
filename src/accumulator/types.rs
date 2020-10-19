@@ -5,8 +5,6 @@
 use bitcoin::blockdata::transaction;
 use bitcoin::hashes::{sha256, Hash, HashEngine};
 
-use super::pollard;
-
 type HASH = [u8; 32];
 
 /// Leaf represents a utxo in the utreexo tree. These are the bottommost

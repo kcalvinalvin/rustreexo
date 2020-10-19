@@ -30,7 +30,7 @@ pub fn extract_twins(nodes: Vec<u64>, forest_rows: u8) -> (Vec<u64>, Vec<u64>) {
 // Go left to right through the bits of numLeaves,
 // and subtract that from position until it goes negative.
 // (Does not work for nodes that are not at the bottom)
-fn detect_sub_tree_rows(pos: u64, num_leaves: u64, forest_rows: u8) -> u8 {
+pub fn detect_sub_tree_rows(pos: u64, num_leaves: u64, forest_rows: u8) -> u8 {
     let mut h = forest_rows;
     let mut marker = pos;
 
@@ -44,7 +44,7 @@ fn detect_sub_tree_rows(pos: u64, num_leaves: u64, forest_rows: u8) -> u8 {
 
 // detectRow finds the current row of a node, given the position
 // and the total forest rows.
-fn detect_row(pos: u64, forest_rows: u8) -> u8 {
+pub fn detect_row(pos: u64, forest_rows: u8) -> u8 {
     let mut marker: u64 = 1 << forest_rows;
     let mut h: u8 = 0;
 
@@ -75,7 +75,7 @@ fn row_offset(row: u8, forest_rows: u8) -> u64 {
     (2 << forest_rows) - (2 << (forest_rows - row))
 }
 
-fn detect_offset(pos: u64, num_leaves: u64) -> (u8, u8, u64) {
+pub fn detect_offset(pos: u64, num_leaves: u64) -> (u8, u8, u64) {
     let mut tr = tree_rows(num_leaves);
     let nr = detect_row(pos, tr);
 
@@ -167,25 +167,26 @@ fn cousin(pos: u64) -> u64 {
     pos ^ 2
 }
 
-/*
-fn in_forest(pos: u64, num_leaves: u64, forest_rows: u8) -> bool {
+pub fn in_forest(mut pos: u64, num_leaves: u64, forest_rows: u8) -> bool {
+    // quick yes
     if pos < num_leaves {
         return true;
     }
+
     let marker = 1 << forest_rows;
     let mask = (marker << 1) - 1;
+
     if pos >= mask {
         return false;
-    } else {
     }
-    /*
-    let mut val;
-    while pos & marker != 0 {
-        val = ((pos << 1) & mask) | 1
+
+    while pos&marker != 0 {
+        pos = ((pos << 1) & mask) | 1;
     }
-    */
+
+    return pos < num_leaves;
 }
-*/
+
 // tree_rows returns the number of rows given n leaves
 pub fn tree_rows(n: u64) -> u8 {
     // tree_rows works by:

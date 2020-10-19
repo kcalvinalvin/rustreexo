@@ -5,7 +5,7 @@ use super::util;
 
 /// transform is the function used for re-organzing Utreexo tree. Given a vector
 /// of positions to be deleted, it returns a
-fn transform(mut dels: Vec<u64>, num_leaves: u64, forest_rows: u8) -> Vec<Vec<types::Arrow>> {
+pub fn transform(mut dels: Vec<u64>, num_leaves: u64, forest_rows: u8) -> Vec<Vec<types::Arrow>> {
     let next_n_leaves = num_leaves - dels.len() as u64;
 
     let mut swaps: Vec<Vec<types::Arrow>> = Vec::with_capacity(forest_rows as usize);
@@ -35,8 +35,7 @@ fn transform(mut dels: Vec<u64>, num_leaves: u64, forest_rows: u8) -> Vec<Vec<ty
         collapses[row as usize] = vec!(make_collapse(dels.clone(), del_remain, root_present, next_n_leaves, num_leaves, row, forest_rows).unwrap());
 
         let mut swap_nextdels = makeswap_nextdels(dels.clone(), del_remain, root_present, forest_rows);
-
-        twin_nextdels.0.append(&mut swap_nextdels);
+twin_nextdels.0.append(&mut swap_nextdels);
         twin_nextdels.0.dedup();
         twin_nextdels.0.sort();
 
@@ -132,23 +131,30 @@ fn swap_collapses(swaps: &mut Vec<Vec<types::Arrow>>, collapses: &mut Vec<Vec<ty
         return
     }
 
-    let mut row = collapses.len();
+    let mut rows = collapses.len();
 
     // For all the collapses, go through all of them except for the root
-    while row != 0 {
-        for swap in &swaps[row] {
-            swap_inrow(swap, collapses, row as u8, forest_rows);
+    while rows != 0 {
+        for swap in &swaps[rows] {
+            swap_inrow(swap, collapses, rows as u8, forest_rows);
         }
 
         if collapses.len() == 0 {
             continue
         }
 
-        let rowcol = collapses[row][0].clone();
-        swap_inrow(&rowcol, collapses, row as u8, forest_rows);
+        let rowcol = collapses[rows][0].clone();
+        swap_inrow(&rowcol, collapses, rows as u8, forest_rows);
 
-        row -= 1;
+        rows -= 1;
     }
+
+    //for row in (0..rows).rev() {
+    //    for swap in &swaps[row] {
+    //        swap_inrow(swap, collapses, rows as u8, forest_rows);
+    //    }
+
+    //}
 }
 
 fn swap_inrow(s: &types::Arrow, collapses: &mut Vec<Vec<types::Arrow>>, row: u8, forest_rows: u8) {

@@ -1,4 +1,4 @@
-pub mod pollard;
-pub mod transform;
-pub mod types;
 pub mod util;
+pub mod types;
+pub mod transform;
+pub mod pollard;
