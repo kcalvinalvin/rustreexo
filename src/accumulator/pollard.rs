@@ -61,47 +61,43 @@ impl Pollard {
     }
 
     // AddSingle adds a single given utxo to the tree
+    // TODO activate caching (use remember). This isn't done in the
+    // Go repo either yet
     fn add_single(&mut self, utxo: sha256::Hash, remember: bool) {
 
         // if add is forgetable, forget all the new nodes made
+        fn add(pol: &mut Pollard, node: &mut PolNode, num_leaves: u64) -> PolNode{
+            //println!("num_leaves AND 1: {}", num_leaves & 1);
+            //println!("num_leaves: {}", num_leaves);
 
-        fn add(pol: &mut Pollard, mut node: &mut PolNode, num_leaves: u64) -> PolNode{
-            println!("{}", "num_leaves AND 1");
-            println!("{}", num_leaves & 1);
-            println!("{}", "num_leaves");
-            println!("{}", num_leaves);
+            let mut return_node = node.clone();
+
             if num_leaves & 1 == 1 {
-                println!("TRUE");
                 match &mut pol.roots {
                     // if num_leaves & 1 is true, pol.roots can't be none
                     None => (),
                     Some(root) => {
-                        println!("BYE");
                         let before_len = root.clone().len();
                         let mut left_root = root.pop().unwrap();
-                        assert_ne!(root.clone().len(), before_len);
+                        assert_ne!(root.clone().len(), before_len); // sanity
 
                         mem::swap(&mut left_root.l_niece, &mut node.l_niece);
                         mem::swap(&mut left_root.r_niece, &mut node.r_niece);
 
                         let n_hash = types::parent_hash(&left_root.data.clone(), &node.data.clone());
-                        let mut node = &mut PolNode {
+                        let node = &mut PolNode {
                             data: n_hash,
                             l_niece: Some(Box::new(left_root)),
                             r_niece: Some(Box::new(node.clone())),
                         };
 
-                        //node.l_niece = Some(Box::new(left_root));
-                        //node.r_niece = Some(Box::new(node.clone()));
                         node.prune();
-                        let return_node = add(pol, node, num_leaves>>1);
-
-                        return return_node
+                        return_node = add(pol, node, num_leaves>>1);
                     },
                 }
             }
 
-            return node.clone()
+            return return_node;
         }
 
         let mut node = &mut PolNode {
@@ -110,57 +106,22 @@ impl Pollard {
             data: utxo,
         };
 
-        println!("{}", "num_leaves given");
-        println!("{}", self.num_leaves);
+        //println!("num_leaves given:{}", self.num_leaves);
         let add_node = add(self, &mut node, self.num_leaves);
 
         match &mut self.roots {
             None => {
-                self.roots = Some(vec![add_node.clone(); 1]);
-                println!("HI");
+                self.roots = Some(vec![add_node; 1]);
             },
             Some(root) => {
-                println!("{}", "before");
-                println!("{}", root.clone().len());
-                println!("ADD");
-                root.push(add_node.clone())
+                //println!("before: {}", root.clone().len());
+                //println!("ADD");
+                root.push(add_node)
             }
         }
+
+        // increment leaves
         self.num_leaves += 1;
-        // loop until we find a zero; destroy roots until you make one
-        //while (self.num_leaves >> h) & 1 == 1 {
-        //    let &mut left_root: &mut PolNode;
-
-        //    match &mut self.roots {
-        //        None => (),
-        //        Some(root) => {
-        //            left_root = root.pop().unwrap();
-        //        },
-        //    }
-
-        //    //if h == 0 && remember {
-        //    //        // make sure that siblings are always remembered in pairs.
-        //    //        left_root.unwrap().nieces[0] = Some(Box::new(left_root.clone().unwrap()));
-        //    //}
-
-        //    //left_root.nieces =
-        //    //mem::swap(&mut left_root.nieces, &mut node.nieces);
-        //    //left_root.unwrap_or.nieces = tmp;
-        //    //left_root.niece, n.niece = n.niece, leftRoot.niece; // swap
-
-        //    //let n_hash = types::parent_hash(&left_root.data, &node.data); // hash
-
-        //    //node = Box::new(PolNode {
-        //    //    data: n_hash,
-        //    //    nieces: [Some(Box::new(left_root.clone())), Some(node)],
-        //    //}); // new
-
-        //    //n.prune();
-        //    h += 1;
-        //}
-
-        //self.roots.unwrap().push(*node);
-        //self.num_leaves += 1;
     }
 
     fn remove(&mut self, dels: Vec<u64>) {
@@ -364,9 +325,15 @@ mod tests {
 
         let mut engine1 = bitcoin::hashes::sha256::Hash::engine();
         let num2: &[u8; 1] = &[2 as u8];
-        engine1.input(num2);
+        &engine1.input(num2);
         let h2 = sha256::Hash::from_engine(engine1);
         let leaf2 = types::Leaf{hash: h2, remember: false};
+
+        let mut engine3 = bitcoin::hashes::sha256::Hash::engine();
+        let num3: &[u8; 1] = &[3 as u8];
+        engine3.input(num3);
+        let h3 = sha256::Hash::from_engine(engine3);
+        let leaf3 = types::Leaf{hash: h3, remember: false};
 
         let mut pollard = super::Pollard::new();
         &pollard.modify(vec![leaf1], vec![]);
@@ -376,17 +343,17 @@ mod tests {
         &pollard.modify(vec![leaf2], vec![]);
         assert_ne!(pollard.roots.clone().unwrap()[0].data, h1);
         assert_ne!(pollard.roots.clone().unwrap()[0].data, h2);
-        println!("{:?}", h1);
-        println!("{:?}", h2);
-        println!("{:?}", pollard.roots.unwrap()[0].data);
-        //assert_eq!(pollard.num_leaves, 1);
+        println!("h1: {:?}", h1);
+        println!("h2: {:?}", h2);
+        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        println!("pollard leaves: {:?}", &pollard.num_leaves);
+        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
 
-        println!("{:?}", &pollard.num_leaves);
-        //println!("{:?}", pollard.roots.unwrap().len());
-        //assert_eq!(pollard.roots.unwrap().len(), 2);
-        //assert_eq!(pollard.roots.clone().unwrap()[0].data, h1);
-        //assert_eq!(pollard.num_leaves, 2);
-        //println!("{:?}", pollard.roots.unwrap()[3].data);
+        &pollard.modify(vec![leaf3], vec![]);
+
+        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        println!("pollard leaves: {:?}", &pollard.num_leaves);
+        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
     }
 
     #[test]
