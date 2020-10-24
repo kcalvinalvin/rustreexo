@@ -282,20 +282,17 @@ mod tests {
 
     #[test]
     fn util_test() {
-        use std::{println as info, println as warn};
         let test = vec![0, 1, 2, 3, 4, 7, 10];
 
-        println!("hihsidfhisdhifshd");
         let x = super::extract_twins(test, 4);
         assert_eq!(x.1, vec![0, 1, 2, 3]);
-        println!("{:?}", x.0);
-        println!("{:?}", x.1);
+        //println!("{:?}", x.0);
+        //println!("{:?}", x.1);
 
         for leaf_count in 4..1000 {
             for pos in 0..leaf_count {
                 let n_vec = vec![pos, pos | 1, pos + 2, pos + 10];
                 let x = super::extract_twins(n_vec, super::tree_rows(leaf_count));
-                //println!("sesdfondsofj");
                 //println!("{:?}", x.0);
                 //println!("{:?}", x.1);
                 assert_eq!(x.1, vec![pos, pos | 1]);
