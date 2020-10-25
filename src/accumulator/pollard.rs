@@ -150,11 +150,6 @@ impl Pollard {
 
         fn grab_niece(mut p_node: PolNode, mut p_node_sib: PolNode, branch_len: u8, bits: u64) -> Option<(PolNode, PolNode, u8)> {
 
-            // We're at the bottom, return
-            if branch_len == 0 {
-                return Some((p_node.clone(), p_node_sib, 0))
-            }
-
             // calculate the left root. 0 means left_niece, 1 means right_niece
             let lr = bits>>branch_len & 1;
 
@@ -187,6 +182,12 @@ impl Pollard {
                         p_node_sib = *niece.clone()
                     }
                 }
+            }
+
+            // Check if next recurse is gonna be at the bottom
+            // Recurse as long as we're not at bottom
+            if branch_len-1 != 0 {
+                grab_niece(p_node.clone(), p_node_sib.clone(), branch_len-1, bits);
             }
 
             return Some((p_node, p_node_sib, branch_len-1));
@@ -222,77 +223,6 @@ impl Pollard {
         }
         return None
     }
-    //        for h in (0+1..branch_len).rev() {
-    //            let lr = bits>>h & 1;
-
-    //            // grab the sibling of lr
-    //            let lr_sib = lr ^ 1;
-
-    //            // if a sib doesn't exist, need to create it and hook it in
-    //            //if n.nieces[lr_sib].is_none() {
-    //            //   n.nieces[lr_sib] = Box::polNode{}
-    //            //}
-    //            let n = &node.unwrap().nieces[lr as usize].as_ref().unwrap();
-    //            node = Some(n);
-    //            //node = Some(&node.unwrap().nieces[lr as usize].unwrap());
-    //            node_sib = Some(&node.unwrap().nieces[lr_sib as usize].as_ref().unwrap());
-
-    //            if node.is_none() {
-    //                // if a node doesn't exist, crash
-    //                // no niece in this case
-    //                return None;
-    //            }
-    //        }
-
-    //        let lr = bits & 1;
-
-    //        // grab the sibling of lr
-    //        let lr_sib = lr ^ 1;
-
-    //        let hn = Some(HashableNode{
-    //            sib: Some(Box::new(node.unwrap().clone())),
-    //            dest: Some(Box::new(node_sib.unwrap().clone())),
-    //            position: pos
-    //        });
-    //        //hn.unwrap().dest = *node_sib.unwrap(); // this is kind of confusing eh?
-    //        //hn.unwrap().sib = *node.unwrap();     // but yeah, switch siblingness
-    //        let n = node.unwrap().nieces[lr_sib as usize].clone();
-    //        let nsib = node.unwrap().nieces[lr as usize].clone();
-
-    //        Some((*n.unwrap(), *nsib.unwrap(), hn.unwrap()))
-    //    }
-
-    //fn swap_nodes(&mut self, swaps: types::Arrow, row: u8) -> HashableNode {
-    //    if !util::in_forest(swaps.from, self.num_leaves, util::tree_rows(self.num_leaves)) ||
-    //        !util::in_forest(swaps.to, self.num_leaves, util::tree_rows(self.num_leaves)) {
-    //    }
-    //    let (a, asib, _) = self.grab_pos(swaps.from).unwrap();
-
-    //    // currently swaps the "values" instead of changing what parents point
-    //    // // to.  Seems easier to reason about but maybe slower?  But probably
-    //    // // doesn't matter that much because it's changing 8 bytes vs 30-something
-    //    //
-    //    // // TODO could be improved by getting the highest common ancestor
-    //    // // and then splitting instead of doing 2 full descents
-    //    // TODO (rust): Actually unwrap and check if None
-    //    let(mut a, mut asib, _) = self.grab_pos(swaps.from).unwrap();
-    //    let(mut b, mut bsib, mut bhn) = self.grab_pos(swaps.to).unwrap();
-
-    //    let position = util::parent(swaps.to, util::tree_rows(self.num_leaves));
-    //    bhn.position = position;
-
-    //    // do the actual swap here
-    //    pol_swap(&mut a, &mut asib, &mut b, &mut bsib);
-
-    //    //if bhn.sib.unwrap().nieces[0].unwrap().data.is_none() || bhn.sib.niece {
-    //    //}
-
-    //    //if bhn.sib.niece[0].data == empty || bhn.sib.niece[1].data == empty {
-    //    //            bhn = nil // we can't perform this hash as we don't know the children
-    //    //}
-
-    //    return bhn;
-    //}
 }
 
 /// PolNode represents a node in the utreexo pollard tree. It points
