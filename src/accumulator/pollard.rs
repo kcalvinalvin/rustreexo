@@ -39,6 +39,9 @@ impl Pollard {
     /// Modify changes the Utreexo tree state given the utxos and stxos
     /// stxos are denoted by their value
     pub fn modify(&mut self, utxos: Vec<types::Leaf>, stxos: Vec<u64>) {
+        // Order matters here. Adding then removing will result in a different
+        // tree vs deleting then adding. For ease of use, only modify is visible
+        // for external crates. This is consensus critical.
         Pollard::remove(self, stxos);
         Pollard::add(self, utxos);
     }
@@ -65,34 +68,32 @@ impl Pollard {
     // Go repo either yet
     fn add_single(&mut self, utxo: sha256::Hash, remember: bool) {
 
-        // if add is forgetable, forget all the new nodes made
+        // recurse from the right side of the tree until we hit a tree with no root
+        // Destorys roots along the way
         fn add(pol: &mut Pollard, node: &mut PolNode, num_leaves: u64) -> PolNode{
-            //println!("num_leaves AND 1: {}", num_leaves & 1);
-            //println!("num_leaves: {}", num_leaves);
-
             let mut return_node = node.clone();
 
             if num_leaves & 1 == 1 {
                 match &mut pol.roots {
                     // if num_leaves & 1 is true, pol.roots can't be none
                     None => (),
-                    Some(root) => {
-                        let before_len = root.clone().len();
-                        let mut left_root = root.pop().unwrap();
-                        assert_ne!(root.clone().len(), before_len); // sanity
+                    Some(roots) => {
+                        let before_len = roots.clone().len();
+                        let mut left_root = roots.pop().unwrap();
+                        assert_ne!(roots.clone().len(), before_len); // sanity
 
                         mem::swap(&mut left_root.l_niece, &mut node.l_niece);
                         mem::swap(&mut left_root.r_niece, &mut node.r_niece);
 
                         let n_hash = types::parent_hash(&left_root.data.clone(), &node.data.clone());
-                        let node = &mut PolNode {
+                        let new_node = &mut PolNode {
                             data: n_hash,
                             l_niece: Some(Box::new(left_root)),
                             r_niece: Some(Box::new(node.clone())),
                         };
 
-                        node.prune();
-                        return_node = add(pol, node, num_leaves>>1);
+                        new_node.prune();
+                        return_node = add(pol, new_node, num_leaves>>1);
                     },
                 }
             }
@@ -100,13 +101,14 @@ impl Pollard {
             return return_node;
         }
 
+        // init node. If the Pollard is perfect (meaning only one root), this will become a
+        // new root
         let mut node = &mut PolNode {
+            data: utxo,
             l_niece: None,
             r_niece: None,
-            data: utxo,
         };
 
-        //println!("num_leaves given:{}", self.num_leaves);
         let add_node = add(self, &mut node, self.num_leaves);
 
         match &mut self.roots {
@@ -114,13 +116,11 @@ impl Pollard {
                 self.roots = Some(vec![add_node; 1]);
             },
             Some(root) => {
-                //println!("before: {}", root.clone().len());
-                //println!("ADD");
                 root.push(add_node)
             }
         }
 
-        // increment leaves
+        // increment leaf count
         self.num_leaves += 1;
     }
 
@@ -146,27 +146,82 @@ impl Pollard {
 
     }
 
-    //fn grab_pos(&mut self, pos: u64) -> Option<(PolNode, PolNode, HashableNode)> {
-    //    // Grab the tree that the position is at
-    //    let (tree, branch_len, bits) = util::detect_offset(pos, self.num_leaves);
-    //        if tree as usize >= self.roots.len() {
-    //            return None
-    //        }
+    fn grab_pos(&mut self, pos: u64) -> Option<(PolNode, PolNode, HashableNode)> {
 
-    //        if branch_len == 0 {
-    //            let node = self.roots[tree as usize].clone();
-    //            let node_sib = self.roots[tree as usize].clone();
+        fn grab_niece(mut p_node: PolNode, mut p_node_sib: PolNode, branch_len: u8, bits: u64) -> Option<(PolNode, PolNode, u8)> {
 
-    //            let hn = HashableNode {
-    //                sib: Some(Box::new(node.clone())), dest: Some(Box::new(node_sib.clone())), position: pos
-    //            };
+            // We're at the bottom, return
+            if branch_len == 0 {
+                return Some((p_node.clone(), p_node_sib, 0))
+            }
 
-    //            return Some((node, node_sib, hn))
-    //        }
+            // calculate the left root. 0 means left_niece, 1 means right_niece
+            let lr = bits>>branch_len & 1;
 
-    //        let mut node = Some(&self.roots[tree as usize]);
-    //        let mut node_sib = Some(&self.roots[tree as usize]);
+            // 0 is the left, 1 is the right as
+            if lr == 0 {
+                match &mut p_node.l_niece {
+                    None => return None,
+                    Some(niece) => {
+                        p_node = *niece.clone()
+                    }
+                }
 
+                match &mut p_node.r_niece {
+                    None => return None,
+                    Some(niece) => {
+                        p_node_sib = *niece.clone()
+                    }
+                }
+            } else {
+                match &mut p_node.r_niece {
+                    None => return None,
+                    Some(niece) => {
+                        p_node = *niece.clone()
+                    }
+                }
+
+                match &mut p_node.l_niece {
+                    None => return None,
+                    Some(niece) => {
+                        p_node_sib = *niece.clone()
+                    }
+                }
+            }
+
+            return Some((p_node, p_node_sib, branch_len-1));
+        }
+
+        // Grab the tree that the position is at
+        let (tree, branch_len, bits) = util::detect_offset(pos, self.num_leaves);
+
+        match &self.roots {
+            None => (),
+            Some(root) => {
+                if tree as usize >= root.len() {
+                    return None
+                }
+
+                let node = root[tree as usize].clone();
+                let node_sib = root[tree as usize].clone();
+
+                match grab_niece(node, node_sib, branch_len, bits) {
+                    None => return None,
+                    Some(res) => {
+                        let hnode = HashableNode {
+                            sib: Some(Box::new(res.0.clone() )),
+                            dest: Some(Box::new(res.1.clone() )),
+                            position: pos
+                        };
+
+                        return Some((res.0, res.1, hnode));
+
+                    }
+                }
+            }
+        }
+        return None
+    }
     //        for h in (0+1..branch_len).rev() {
     //            let lr = bits>>h & 1;
 
@@ -185,10 +240,8 @@ impl Pollard {
     //            if node.is_none() {
     //                // if a node doesn't exist, crash
     //                // no niece in this case
-    //                // TODO error message could be better
     //                return None;
     //            }
-
     //        }
 
     //        let lr = bits & 1;
@@ -318,42 +371,75 @@ mod tests {
         use super::types;
 
         let mut engine = bitcoin::hashes::sha256::Hash::engine();
-        let num: &[u8; 1] = &[1 as u8];
+        let num: &[u8; 1] = &[0 as u8];
         engine.input(num);
         let h1 = sha256::Hash::from_engine(engine);
         let leaf1 = types::Leaf{hash: h1, remember: false};
 
         let mut engine1 = bitcoin::hashes::sha256::Hash::engine();
-        let num2: &[u8; 1] = &[2 as u8];
+        let num2: &[u8; 1] = &[1 as u8];
         &engine1.input(num2);
         let h2 = sha256::Hash::from_engine(engine1);
         let leaf2 = types::Leaf{hash: h2, remember: false};
 
         let mut engine3 = bitcoin::hashes::sha256::Hash::engine();
-        let num3: &[u8; 1] = &[3 as u8];
+        let num3: &[u8; 1] = &[2 as u8];
         engine3.input(num3);
         let h3 = sha256::Hash::from_engine(engine3);
         let leaf3 = types::Leaf{hash: h3, remember: false};
 
+        let mut engine4 = bitcoin::hashes::sha256::Hash::engine();
+        let num4: &[u8; 1] = &[3 as u8];
+        engine4.input(num4);
+        let h4 = sha256::Hash::from_engine(engine4);
+        let leaf4 = types::Leaf{hash: h4, remember: false};
+
+        let mut engine5 = bitcoin::hashes::sha256::Hash::engine();
+        let num5: &[u8; 1] = &[4 as u8];
+        engine5.input(num5);
+        let h5 = sha256::Hash::from_engine(engine5);
+        let leaf5 = types::Leaf{hash: h5, remember: false};
+
         let mut pollard = super::Pollard::new();
+
         &pollard.modify(vec![leaf1], vec![]);
+
         assert_eq!(pollard.num_leaves, 1);
         assert_eq!(pollard.roots.clone().unwrap()[0].data, h1);
 
         &pollard.modify(vec![leaf2], vec![]);
         assert_ne!(pollard.roots.clone().unwrap()[0].data, h1);
         assert_ne!(pollard.roots.clone().unwrap()[0].data, h2);
-        println!("h1: {:?}", h1);
-        println!("h2: {:?}", h2);
-        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
-        println!("pollard leaves: {:?}", &pollard.num_leaves);
-        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
+
+        let root0 = pollard.roots.clone().unwrap()[0].data;
+        //println!("h1: {:?}", h1);
+        //println!("h2: {:?}", h2);
+        //println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        //println!("pollard leaves: {:?}", &pollard.num_leaves);
+        //println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
 
         &pollard.modify(vec![leaf3], vec![]);
 
         println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        println!("root[1]: {:?}", pollard.roots.clone().unwrap()[1].data);
+        println!("h2: {:?}", h3);
+        assert_eq!(pollard.roots.clone().unwrap()[1].data, h3);
+
         println!("pollard leaves: {:?}", &pollard.num_leaves);
         println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
+
+        &pollard.modify(vec![leaf4], vec![]);
+
+        println!("pollard leaves: {:?}", &pollard.num_leaves);
+        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
+        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        //assert_ne!(pollard.roots.clone().unwrap()[1].data, h3);
+
+        &pollard.modify(vec![leaf5], vec![]);
+        println!("pollard leaves: {:?}", &pollard.num_leaves);
+        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
+        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
+        assert_eq!(pollard.roots.clone().unwrap()[1].data, h5);
     }
 
     #[test]
