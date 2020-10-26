@@ -20,6 +20,7 @@ use bitcoin::hashes::{sha256, Hash, HashEngine};
 ///
 /// Its structure resembles of that of a binary tree, except that
 /// the pointers point to aunts - nieces, not parents - children
+#[derive(Clone)]
 pub struct Pollard {
     /// Roots are the top-most nodes of the tree
     /// There may be multiple roots as Utreexo is organized as a
@@ -78,9 +79,9 @@ impl Pollard {
                     // if num_leaves & 1 is true, pol.roots can't be none
                     None => (),
                     Some(roots) => {
-                        let before_len = roots.clone().len();
+                        //let before_len = roots.clone().len();
                         let mut left_root = roots.pop().unwrap();
-                        assert_ne!(roots.clone().len(), before_len); // sanity
+                        //assert_ne!(roots.clone().len(), before_len); // sanity
 
                         mem::swap(&mut left_root.l_niece, &mut node.l_niece);
                         mem::swap(&mut left_root.r_niece, &mut node.r_niece);
@@ -295,81 +296,94 @@ fn pol_swap<'a, 'b>(mut a: &'a mut PolNode, mut asib: &'b mut PolNode, mut b: &'
 
 #[cfg(test)]
 mod tests {
+    fn pollard_add_five() {
+        use bitcoin::hashes::{sha256, Hash, HashEngine};
+        use super::types;
+
+        let mut pollard = super::Pollard::new();
+
+        for i in 1..5 {
+            // boilerplate hashgen
+            // TODO maybe there's a better way?
+            let mut engine = bitcoin::hashes::sha256::Hash::engine();
+            let num: &[u8; 1] = &[i as u8];
+            engine.input(num);
+            let h = sha256::Hash::from_engine(engine);
+            let leaf = types::Leaf{hash: h, remember: false};
+
+            // add one leaf
+            &pollard.modify(vec![leaf], vec![]);
+
+            match i {
+                1 => {
+                    check_count(pollard.num_leaves, pollard.roots.clone().unwrap().len());
+                    assert_eq!(pollard.roots.clone().unwrap()[0].data, h);
+                }
+
+                2 => {
+                    check_count(pollard.num_leaves, pollard.roots.clone().unwrap().len());
+                    assert_ne!(pollard.roots.clone().unwrap()[0].data, h);
+                }
+
+                3 => {
+                    check_count(pollard.num_leaves, pollard.roots.clone().unwrap().len());
+                    assert_eq!(pollard.roots.clone().unwrap()[1].data, h);
+                }
+
+                4 => {
+                    check_count(pollard.num_leaves, pollard.roots.clone().unwrap().len());
+                    assert_ne!(pollard.roots.clone().unwrap()[0].data, h);
+                }
+
+                5 => {
+                    check_count(pollard.num_leaves, pollard.roots.clone().unwrap().len());
+                    assert_eq!(pollard.roots.clone().unwrap()[1].data, h);
+                }
+
+                _ => ()
+            }
+        }
+    }
+
+    // A Utreexo tree will always have a collection of trees that are a perfect power
+    // of two. The popcount of leaves should always equal the length of the root
+    fn check_count(num_leaves: u64, root_len: usize) {
+        let root_count = num_leaves.count_ones() as usize;
+        assert_eq!(root_count, root_len);
+    }
+
+    fn check_root() {
+    }
+
     #[test]
     fn test_pol_add() {
         use bitcoin::hashes::{sha256, Hash, HashEngine};
         use super::types;
 
-        let mut engine = bitcoin::hashes::sha256::Hash::engine();
-        let num: &[u8; 1] = &[0 as u8];
-        engine.input(num);
-        let h1 = sha256::Hash::from_engine(engine);
-        let leaf1 = types::Leaf{hash: h1, remember: false};
+        let mut pol = super::Pollard::new();
 
-        let mut engine1 = bitcoin::hashes::sha256::Hash::engine();
-        let num2: &[u8; 1] = &[1 as u8];
-        &engine1.input(num2);
-        let h2 = sha256::Hash::from_engine(engine1);
-        let leaf2 = types::Leaf{hash: h2, remember: false};
+        for i in 0..50000 {
+            let mut engine = bitcoin::hashes::sha256::Hash::engine();
+            let num: &[u8; 1] = &[(i % 255) as u8];
+            engine.input(num);
+            let h = sha256::Hash::from_engine(engine);
+            let leaf = types::Leaf{hash: h, remember: false};
 
-        let mut engine3 = bitcoin::hashes::sha256::Hash::engine();
-        let num3: &[u8; 1] = &[2 as u8];
-        engine3.input(num3);
-        let h3 = sha256::Hash::from_engine(engine3);
-        let leaf3 = types::Leaf{hash: h3, remember: false};
+            pol.modify(vec![leaf], vec![]);
 
-        let mut engine4 = bitcoin::hashes::sha256::Hash::engine();
-        let num4: &[u8; 1] = &[3 as u8];
-        engine4.input(num4);
-        let h4 = sha256::Hash::from_engine(engine4);
-        let leaf4 = types::Leaf{hash: h4, remember: false};
+            if i % 10000 == 0 {
+                check_count(pol.num_leaves, pol.roots.clone().unwrap().len());
+            }
 
-        let mut engine5 = bitcoin::hashes::sha256::Hash::engine();
-        let num5: &[u8; 1] = &[4 as u8];
-        engine5.input(num5);
-        let h5 = sha256::Hash::from_engine(engine5);
-        let leaf5 = types::Leaf{hash: h5, remember: false};
+            // Check if power of two
+            //if (i != 0) && ((i & (i - 1)) == 0) {
 
-        let mut pollard = super::Pollard::new();
+            //}
+        }
 
-        &pollard.modify(vec![leaf1], vec![]);
+        check_count(pol.num_leaves, pol.roots.clone().unwrap().len());
 
-        assert_eq!(pollard.num_leaves, 1);
-        assert_eq!(pollard.roots.clone().unwrap()[0].data, h1);
-
-        &pollard.modify(vec![leaf2], vec![]);
-        assert_ne!(pollard.roots.clone().unwrap()[0].data, h1);
-        assert_ne!(pollard.roots.clone().unwrap()[0].data, h2);
-
-        let root0 = pollard.roots.clone().unwrap()[0].data;
-        //println!("h1: {:?}", h1);
-        //println!("h2: {:?}", h2);
-        //println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
-        //println!("pollard leaves: {:?}", &pollard.num_leaves);
-        //println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
-
-        &pollard.modify(vec![leaf3], vec![]);
-
-        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
-        println!("root[1]: {:?}", pollard.roots.clone().unwrap()[1].data);
-        println!("h2: {:?}", h3);
-        assert_eq!(pollard.roots.clone().unwrap()[1].data, h3);
-
-        println!("pollard leaves: {:?}", &pollard.num_leaves);
-        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
-
-        &pollard.modify(vec![leaf4], vec![]);
-
-        println!("pollard leaves: {:?}", &pollard.num_leaves);
-        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
-        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
-        //assert_ne!(pollard.roots.clone().unwrap()[1].data, h3);
-
-        &pollard.modify(vec![leaf5], vec![]);
-        println!("pollard leaves: {:?}", &pollard.num_leaves);
-        println!("pollard root len: {:?}", pollard.roots.clone().unwrap().len());
-        println!("root[0]: {:?}", pollard.roots.clone().unwrap()[0].data);
-        assert_eq!(pollard.roots.clone().unwrap()[1].data, h5);
+        pollard_add_five();
     }
 
     #[test]
