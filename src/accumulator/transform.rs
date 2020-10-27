@@ -13,6 +13,7 @@ pub fn transform(mut dels: Vec<u64>, num_leaves: u64, forest_rows: u8) -> Vec<Ve
 
     for row in 0..forest_rows {
         let mut root_present = num_leaves&(1<<row) != 0;
+        println!("Is root present: {}", root_present);
         let root_pos = util::root_position(num_leaves, row, forest_rows);
 
         // Does root exist. And is the last element in the root position
@@ -56,8 +57,7 @@ twin_nextdels.0.append(&mut swap_nextdels);
 
 fn make_swaps(mut dels: Vec<u64>, del_remain: bool, root_present: bool, root_pos: u64) -> Vec<types::Arrow> {
     let n_swaps;
-
-    if del_remain && root_present {
+if del_remain && root_present {
         n_swaps = (dels.len() >> 1) + 1;
     } else {
         n_swaps = dels.len() >> 1;
@@ -148,17 +148,9 @@ fn swap_collapses(swaps: &mut Vec<Vec<types::Arrow>>, collapses: &mut Vec<Vec<ty
 
         rows -= 1;
     }
-
-    //for row in (0..rows).rev() {
-    //    for swap in &swaps[row] {
-    //        swap_inrow(swap, collapses, rows as u8, forest_rows);
-    //    }
-
-    //}
 }
 
 fn swap_inrow(s: &types::Arrow, collapses: &mut Vec<Vec<types::Arrow>>, row: u8, forest_rows: u8) {
-    //let iter = collapses.iter().enumerate();
     let mut cr = 0;
 
     while cr < row {

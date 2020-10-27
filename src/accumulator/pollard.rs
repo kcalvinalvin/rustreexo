@@ -47,7 +47,6 @@ impl Pollard {
         Pollard::add(self, utxos);
     }
 
-
     pub fn add(&mut self, adds: Vec<types::Leaf>) {
         // General algo goes:
         // 1 make a new node & assign data (no nieces; at bottom)
@@ -125,7 +124,7 @@ impl Pollard {
         self.num_leaves += 1;
     }
 
-    fn remove(&mut self, dels: Vec<u64>) {
+    fn remove(&mut self, mut dels: Vec<u64>) {
         // if there is nothing to delete, return
         if dels.len() == 0 {
             return
@@ -138,12 +137,14 @@ impl Pollard {
         // get all the swaps, then apply them all
         let swap_rows = transform::transform(dels, self.num_leaves, pollard_rows);
 
-        let hash_dirt: Vec<u64>;
-        let next_hash_dirt: Vec<u64>;
-        let prev_hash: u64;
+        println!("{:?}", swap_rows);
 
-        for row in 0..pollard_rows {
-        }
+        //let hash_dirt: Vec<u64>;
+        //let next_hash_dirt: Vec<u64>;
+        //let prev_hash: u64;
+
+        //for row in 0..pollard_rows {
+        //}
 
     }
 
@@ -353,6 +354,28 @@ mod tests {
     }
 
     fn check_root() {
+    }
+
+    fn test_pol_del() {
+        use bitcoin::hashes::{sha256, Hash, HashEngine};
+        use super::types;
+
+        let mut pol = super::Pollard::new();
+
+        for i in 1..5 {
+            // boilerplate hashgen
+            // TODO maybe there's a better way?
+            let mut engine = bitcoin::hashes::sha256::Hash::engine();
+            let num: &[u8; 1] = &[i as u8];
+            engine.input(num);
+            let h = sha256::Hash::from_engine(engine);
+            let leaf = types::Leaf{hash: h, remember: false};
+
+            // add one leaf
+            &pol.modify(vec![leaf], vec![]);
+        }
+
+        pol.modify(vec![], vec![0]);
     }
 
     #[test]

@@ -33,6 +33,7 @@ pub struct LeafData {
 /// Arrow is used to describe the movement of a leaf to a different
 /// position. This is used for batch deletions during removal
 #[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct Arrow {
     pub from: u64,
     pub to: u64,

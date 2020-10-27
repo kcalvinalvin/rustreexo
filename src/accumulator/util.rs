@@ -222,9 +222,18 @@ fn num_roots(num_leaves: u64) -> u8 {
 pub fn root_position(num_leaves: u64, row: u8, forest_rows: u8) -> u64 {
     let mask = (2 << forest_rows) - 1;
     let before = num_leaves & (mask << (row + 1));
-    let shifted = (before >> row) | (mask << (forest_rows - (row - 1)));
 
+    // the go code relies on an overflow on row.
+    // (forest_rows - (row - 1)) when row is 0 is equivalent to
+    // (forest_rows + 1)
+    if row == 0 {
+        let shifted = (before >> row) | mask << (forest_rows + 1);
+        return shifted & mask;
+    }
+
+    let shifted = (before >> row) | (mask << (forest_rows - (row - 1)));
     shifted & mask
+
 }
 
 // get_roots_reverse gives you the positions of the tree roots, given a number of leaves.
@@ -268,6 +277,14 @@ fn next_pow2(n: u64) -> u64 {
 #[cfg(test)]
 use std::{println as info, println as warn};
 mod tests {
+    #[test]
+    fn test_root_position() {
+        let pos = super::root_position(5, 2, 3);
+        assert_eq!(pos, 12);
+
+        let pos = super::root_position(5, 0, 3);
+        assert_eq!(pos, 4);
+    }
     #[test]
     fn pow_tests() {
         // Check one
